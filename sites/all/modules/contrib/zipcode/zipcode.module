@@ -1,0 +1,677 @@
+<?php
+// $Id: zipcode.module,v 1.14 2009/03/07 23:52:51 thierrygd Exp $
+
+// Copyright 2008 Thierry GUEGAN http://www.arvoriad.com 
+
+/**
+ * @file
+ * Defines zipcodes fields for CCK.
+ * Provide some verifications on the zipcodes
+ */
+
+/**
+ * Implementation of hook_field_info().
+ * Implementation of hook_field_info().
+ *
+ * Here we indicate that the content module will use its default
+ * handling for the view of this field.
+ *
+ * Callbacks can be omitted if default handing is used.
+ * They're included here just so this module can be used
+ * as an example for custom modules that might do things
+ * differently.
+ *
+ * If your module will provide its own Views tables or arguments,
+ * change CONTENT_CALLBACK_DEFAULT to CONTENT_CALLBACK_CUSTOM.
+ *
+ * IMPORTANT! - field and widget names will be truncated to 32 characters in
+ * the database and in internal arrays, like content_fields(). 
+ */
+function zipcode_field_info() {
+  return array(
+    'fr_zipcode' => array('label' => t('French postal codes')),
+    'ca_zipcode' => array('label' => t('Canadian postal codes')),
+    'us_zipcode' => array('label' => t('US zipcodes')),
+    'uk_zipcode' => array('label' => t('United Kingdom postal codes')),    
+    'nl_zipcode' => array('label' => t('Dutch zipcodes')),
+    'au_zipcode' => array('label' => t('Australian zipcodes')),    
+    'dk_zipcode' => array('label' => t('Danish zipcodes')),
+    'pt_zipcode' => array('label' => t('Portuguese zipcodes')),    
+   );
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function zipcode_theme() {
+  return array(
+    'zipcode_textfield' => array(
+      'arguments' => array('element' => NULL),
+    ),
+    'zipcode_formatter_default' => array(
+      'arguments' => array('element' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_field_settings().
+ *
+ * Handle the settings for a field.
+ *
+ * @param $op
+ *   The operation to be performed. Possible values:
+ *   - "form": Display the field settings form.
+ *   - "validate": Check the field settings form for errors.
+ *   - "save": Declare which fields to save back to the database.
+ *   - "database columns": Declare the columns that content.module should create
+ *     and manage on behalf of the field. If the field module wishes to handle
+ *     its own database storage, this should be omitted.
+ *   - "filters": Declare the Views filters available for the field.
+ *     (this is used in CCK's default Views tables definition)
+ *     They always apply to the first column listed in the "database columns"
+ *     array.
+ * @param $field
+ *   The field on which the operation is to be performed.
+ * @return
+ *   This varies depending on the operation.
+ *   - "form": an array of form elements to add to
+ *     the settings page.
+ *   - "validate": no return value. Use form_set_error().
+ *   - "save": an array of names of form elements to
+ *     be saved in the database.
+ *   - "database columns": an array keyed by column name, with arrays of column
+ *     information as values. This column information must include "type", the
+ *     MySQL data type of the column, and may also include a "sortable" parameter
+ *     to indicate to views.module that the column contains ordered information.
+ *     TODO: Details of other information that can be passed to the database layer can
+ *     be found in the API for the Schema API.
+ *   - "filters": an array of 'filters' definitions as expected by views.module
+ *     (see Views Documentation).
+ *     When providing several filters, it is recommended to use the 'name'
+ *     attribute in order to let the user distinguish between them. If no 'name'
+ *     is specified for a filter, the key of the filter will be used instead.  
+ */
+function zipcode_field_settings($op, $field) {
+  switch ($op) {      
+    case 'database columns':
+      if ($field['type'] == 'fr_zipcode') { 
+      	$columns = array(
+        	'value' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      	);
+      }
+      if ($field['type'] == 'ca_zipcode') { 
+         $columns = array(
+            	'value' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+          );
+      }
+      if ($field['type'] == 'us_zipcode') { 
+         $columns = array(
+                 'value' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+          );
+      }
+      if ($field['type'] == 'uk_zipcode') { 
+         $columns = array(
+            	'value' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+          );
+      }     
+      if ($field['type'] == 'nl_zipcode') { 
+      	$columns = array(
+        	'value' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      	);
+      } 
+      if ($field['type'] == 'au_zipcode') { 
+      	$columns = array(
+        	'value' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      	);
+      }   
+      if ($field['type'] == 'dk_zipcode') { 
+      	$columns = array(
+        	'value' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      	);
+      }   
+      if ($field['type'] == 'pt_zipcode') { 
+      	$columns = array(
+        	'value' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      	);
+      }         
+      return $columns;
+  }
+}
+
+/**
+ * Implementation of hook_field().
+ *
+ * Define the behavior of a field type.
+ *
+ * @param $op
+ *   What kind of action is being performed. Possible values:
+ *   - "load": The node is about to be loaded from the database. This hook
+ *     should be used to load the field.
+ *   - "validate": The user has just finished editing the node and is
+ *     trying to preview or submit it. This hook can be used to check or
+ *     even modify the node. Errors should be set with form_set_error().
+ *   - "presave": The user has just finished editing the node and the node has
+ *     passed validation. This hook can be used to modify the node.
+ *   - "insert": The node is being created (inserted in the database).
+ *   - "update": The node is being updated.
+ *   - "delete": The node is being deleted.
+ * @param &$node
+ *   The node the action is being performed on. This argument is passed by
+ *   reference for performance only; do not modify it.
+ * @param $field
+ *   The field the action is being performed on.
+ * @param &$node_field
+ *   The contents of the field in this node. Changes to this variable will
+ *   be saved back to the node object.
+ * @return
+ *   This varies depending on the operation.
+ *   - The "load" operation should return an object containing extra values
+ *     to be merged into the node object.
+ *   - The "insert", "update", "delete", "validate", and "presave" operations
+ *     have no return value.
+ *
+ * In most cases, only "validate" operations is relevant ; the rest
+ * have default implementations in content_field() that usually suffice.  
+ */
+function zipcode_field($op, &$node, $field, &$node_field, $teaser, $page) {
+  switch ($op) {
+    case 'validate': // corresponds to hook phone_widget validate in zipcode-5.x
+      foreach ($node_field as $delta => $item) {
+        if ($item['value'] != '') {
+          if ($field['type'] == 'fr_zipcode' && !valid_zipcode('fr', $item['value'])) {
+            form_set_error($field['field_name'], t('"%value" is not a valid French postal code.<br>Postal codes should only contains 4 or 5 numbers',array('%value' => $item['value'])));
+          }
+          if ($field['type'] == 'ca_zipcode' && !valid_zipcode('ca', $item['value'])) {
+            form_set_error($field['field_name'], t('"%value" is not a valid Canadian postal code.<br>Postal codes should be like Z5Z 5Z5 or Z5Z5Z5 ...',array('%value' => $item['value'])));
+          }
+          if ($field['type'] == 'us_zipcode' && !valid_zipcode('us', $item['value'])) {
+            form_set_error($field['field_name'], t('"%value" is not a valid US zipcode.<br>Zipcodes should be like 99999 or 99999-9999 ...',array('%value' => $item['value'])));
+          } 
+          if ($field['type'] == 'uk_zipcode' && !valid_zipcode('uk', $item['value'])) {
+            form_set_error($field['field_name'], t('"%value" is not a valid United Kingom postal code.<br>Postal codes should be like AB1 C23 or AB1C23 ...',array('%value' => $item['value'])));
+          }              
+          if ($field['type'] == 'nl_zipcode' && !valid_zipcode('nl', $item['value'])) {
+	    form_set_error($field['field_name'], t('"%value" is not a valid Dutch zipcode.<br>Zipcodes should contain 4 numbers followed by 2 letter',array('%value' => $item['value'])));
+          }
+          if ($field['type'] == 'au_zipcode' && !valid_zipcode('au', $item['value'])) {
+	    form_set_error($field['field_name'], t('"%value" is not a valid Australian zipcode.<br>Zipcodes should contain 4 numbers',array('%value' => $item['value'])));
+          }         
+          if ($field['type'] == 'dk_zipcode' && !valid_zipcode('dk', $item['value'])) {
+	    form_set_error($field['field_name'], t('"%value" is not a valid Danish zipcode.<br>Zipcodes should contain 4 numbers',array('%value' => $item['value'])));
+          } 
+          if ($field['type'] == 'pt_zipcode' &&  !valid_zipcode('pt', $item['value'])) {
+	    form_set_error($field['field_name'], t('"%value" is not a valid Portuguese zipcode.<br>Zipcodes should contain 4 numbers',array('%value' => $item['value'])));
+          }   
+        }
+      }
+      break;
+
+    case 'presave': // corresponds to hook phone_widget 'process form values' in phone-5.x
+      foreach ($node_field as $delta => $item) {
+        //format the phone number
+        if ($item['value'] != '') {
+          if ($field['type'] == 'fr_zipcode') {
+            $node_field[$delta]['value'] = format_zipcode('fr', $node_field[$delta]['value'], $field);
+          }
+          if ($field['type'] == 'ca_zipcode') {
+            $node_field[$delta]['value'] = format_zipcode('ca', $node_field[$delta]['value'], $field);
+          }
+          if ($field['type'] == 'us_zipcode') {
+            $node_field[$delta]['value'] = format_zipcode('us', $node_field[$delta]['value'], $field);
+          }          
+          if ($field['type'] == 'uk_zipcode') {
+            $node_field[$delta]['value'] = format_zipcode('uk', $node_field[$delta]['value'], $field);
+          }
+          if ($field['type'] == 'nl_zipcode') {
+            $node_field[$delta]['value'] = format_zipcode('nl', $node_field[$delta]['value'], $field);
+          }          
+          if ($field['type'] == 'au_zipcode') {
+            $node_field[$delta]['value'] = format_zipcode('au', $node_field[$delta]['value'], $field);
+          }
+          if ($field['type'] == 'dk_zipcode') {
+            $node_field[$delta]['value'] = format_zipcode('dk', $node_field[$delta]['value'], $field);
+          }
+          if ($field['type'] == 'pt_zipcode') {
+            $node_field[$delta]['value'] = format_zipcode('pt', $node_field[$delta]['value'], $field);
+          }
+        }
+      }
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_field_view_item().
+ *
+ */
+/*
+function zipcode_field_view_item($field, $node_field_item) {
+    $zipcode =  check_plain($node_field_item['value']);
+    return $zipcode;
+}
+*/
+
+/**
+ *Implementation of hook_field_formatter_info().
+ * Implementation of hook_field_formatter_info().
+ *
+ * The default behavior of formatters is that they will create
+ * a theme for a single field value.
+ *
+ * Setting 'multiple values' to CONTENT_HANDLE_FIELD will create
+ * a formatter that will receive all the values of a field so you
+ * can, for instance, plot all the values on a map or in a graph.
+ *
+ * The 'view' operation (handled by the Content module) constructs the
+ * $node in a way that you can use drupal_render() to display the
+ * formatted output for an individual field.
+ *
+ * i.e. print drupal_render($node->field_foo);
+ *
+ * The code now supports both single value formatters, which theme an
+ * individual item value as has been done in previous version of CCK,
+ * and multiple value formatters, which theme all values for the field
+ * in a single theme. The multiple value formatters could be used, for
+ * instance, to plot field values on a single map or display them
+ * in a graph. Single value formatters are the default, multiple value
+ * formatters can be designated as such in formatter_info().
+ *
+ * The node array will look like:
+ *
+ *  'Single value' formatter:
+ *   $node->content['field_foo'] = array(
+ *     '#type' => 'content_field',
+ *     '#title' => 'label'
+ *     '#field_name' => 'field_name',
+ *     '#node' => $node,
+ *     'items' =>
+ *       0 => array(
+ *         '#theme' => $theme,
+ *         '#field_name' => 'field_name',
+ *         '#type_name' => $node->type,
+ *         '#formatter' => $formatter_name,
+ *         '#item' => $items[0],
+ *       ),
+ *       1 => array(
+ *         '#theme' => $theme,
+ *         '#field_name' => 'field_name',
+ *         '#type_name' => $node->type,
+ *         '#formatter' => $formatter_name,
+ *         '#item' => $items[1],
+ *       ),
+ *     ),
+ *   );
+ *  'Multiple value' formatter:
+ *   $node->content['field_foo'] = array(
+ *     '#type' => 'content_field',
+ *     '#title' => 'label'
+ *     '#field_name' => 'field_name',
+ *     '#node' => $node,
+ *     'items' => array(
+ *       '#theme' => $theme,
+ *       '#field_name' => 'field_name',
+ *       '#type_name' => $node->type,
+ *       '#formatter' => $formatter_name,
+ *       0 => array(
+ *         '#item' => $items[0],
+ *       ),
+ *       1 => array(
+ *         '#item' => $items[1],
+ *       ),
+ *     ),  
+ *   );
+ */
+function zipcode_field_formatter_info() {
+  return array(
+    'default' => array(
+      'label' => 'Default',
+      'field types' => array('fr_zipcode', 
+      			'ca_zipcode', 
+      			'us_zipcode', 
+      			'uk_zipcode', 
+      			'nl_zipcode', 
+      			'au_zipcode',
+      			'dk_zipcode',
+      			'pt_zipcode'      			
+      			),
+      'multiple values' => CONTENT_HANDLE_CORE,		      			
+    ),
+  );
+ }
+ 
+/**
+ *Implementation of hook_field_formatter().
+ * 
+ * Prepare an individual item for viewing in a browser.
+ *
+ * @param $field
+ *   The field the action is being performed on.
+ * @param $item
+ *   An array, keyed by column, of the data stored for this item in this field.
+ * @param $formatter
+ *   The name of the formatter being used to display the field.
+ * @param $node
+ *   The node object, for context. Will be NULL in some cases.
+ *   Warning: when displaying field retrieved by Views, $node will not
+ *   be a "full-fledged" node object, but an object containg the data returned
+ *   by the Views query (at least nid, vid, changed)
+ * @return
+ *   An HTML string containing the formatted item.
+ *
+ * In a multiple-value field scenario, this function will be called once per
+ * value currently stored in the field. This function is also used as the handler
+ * for viewing a field in a views.module tabular listing.
+ *
+ * It is important that this function at the minimum perform security
+ * transformations such as running check_plain() or check_markup().
+ */  
+function zipcode_field_formatter($field, $item, $formatter, $node) {
+  if (!isset($item['value'])) {
+    return '';
+  }
+  if ($field['text_processing']) {
+    $text = check_markup($item['value'], $item['format'], is_null($node) || isset($node->in_preview));
+  }
+  else {
+    $text = check_plain($item['value']);
+  }
+  return $text;
+}
+
+/**
+ * Implementation of hook_widget_info().
+ *
+ * Here we indicate that the content module will handle
+ * the default value and multiple values for these widgets.
+ *
+ * Callbacks can be omitted if default handing is used.
+ * They're included here just so this module can be used
+ * as an example for custom modules that might do things
+ * differently.
+ *
+ * IMPORTANT! - field and widget names will be truncated to 32 characters in
+ * the database and in internal arrays, like content_fields().  
+ */
+function zipcode_widget_info() {
+  return array(
+    'zipcode_textfield' => array(
+      'label' => t('Textfield'),
+      'field types' => array('fr_zipcode', 
+      			'ca_zipcode', 
+      			'us_zipcode', 
+      			'uk_zipcode', 
+      			'nl_zipcode', 
+      			'au_zipcode',
+      			'dk_zipcode',
+      			'pt_zipcode'      			
+      			),
+      'multiple values' => CONTENT_HANDLE_CORE,
+      'callbacks' => array(
+        'default value' => CONTENT_CALLBACK_DEFAULT,
+      ),            			
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_widget_settings().
+ *
+ * Handle the parameters for a widget.
+ *
+ * @param $op
+ *   The operation to be performed. Possible values:
+ *   - "form": Display the widget settings form.
+ *   - "validate": Check the widget settings form for errors.
+ *   - "save": Declare which pieces of information to save back to the database.
+ * @param $widget
+ *   The widget on which the operation is to be performed.
+ * @return
+ *   This varies depending on the operation.
+ *   - "form": an array of form elements to add to the settings page.
+ *   - "validate": no return value. Use form_set_error().
+ *   - "save": an array of names of form elements to be saved in the database.  
+ */
+function zipcode_widget_settings($op, $widget) {
+  switch ($op) {
+    case 'form':
+
+    case 'validate':
+      break; //do nothing 
+
+    case 'save':
+      return array();
+  }
+}
+
+
+/**
+ * Implementation of hook_widget().
+ *
+ * Attach a single form element to the form. It will be built out and
+ * validated in the callback(s) listed in hook_elements. We build it
+ * out in the callbacks rather than here in hook_widget so it can be
+ * plugged into any module that can provide it with valid
+ * $field information.
+ *
+ * Content module will set the weight, field name and delta values
+ * for each form element. This is a change from earlier CCK versions
+ * where the widget managed its own multiple values.
+ *
+ * If there are multiple values for this field, the content module will
+ * call this function as many times as needed.
+ *
+ * @param $form
+ *   the entire form array, $form['#node'] holds node information
+ * @param $form_state
+ *   the form_state, $form_state['values'][$field['field_name']]
+ *   holds the field's form values.
+ * @param $field
+ *   the field array
+ * @param $items
+ *   array of default values for this field
+ * @param $delta
+ *   the order of this item in the array of subelements (0, 1, 2, etc)
+ *
+ * @return
+ *   the form item for a single element for this field  
+ */
+function zipcode_widget(&$form, &$form_state, $field, $items, $delta = 0) {
+  $element = array(
+    '#type' => $field['widget']['type'],
+    '#default_value' => isset($items[$delta]) ? $items[$delta] : NULL,
+  );
+  return $element;
+}
+
+/**
+ * Implementation of hook_content_is_empty().
+ *
+ * NEW REQUIRED HOOK!
+ *
+ * This function tells the content module whether or not to consider
+ * the $item to be empty. This is used by the content module
+ * to remove empty, non-required values before saving them.
+ */
+function zipcode_content_is_empty($item, $field) {
+  return FALSE;
+}
+
+/**
+ * Implementation of FAPI hook_elements().
+ *
+ * Any FAPI callbacks needed for individual widgets can be declared here,
+ * and the element will be passed to those callbacks for processing.
+ *
+ * Drupal will automatically theme the element using a theme with
+ * the same name as the hook_elements key.
+ *
+ * Autocomplete_path is not used by text_widget but other widgets can use it
+ * (see nodereference and userreference).
+ */
+ function zipcode_elements() {
+  return array(
+    'zipcode_textfield' => array(
+      '#input' => TRUE,
+      '#columns' => array('value'), '#delta' => 0,
+      '#process' => array('zipcode_textfield_process'),
+      '#autocomplete_path' => FALSE,
+      ),
+  );
+}
+
+/**
+ * FAPI theme for an individual text elements.
+ *
+ * The textfield or textarea is already rendered by the
+ * textfield or textarea themes and the html output
+ * lives in $element['#children']. Override this theme to
+ * make custom changes to the output.
+ *
+ * $element['#field_name'] contains the field name
+ * $element['#delta]  is the position of this element in the group
+ */
+function theme_zipcode_textfield($element) {
+  return $element['#children'];
+}
+
+/**
+ * Process an individual element.
+ *
+ * Build the form element. When creating a form using FAPI #process,
+ * note that $element['#value'] is already set.
+ *
+ * The $fields array is in $form['#field_info'][$element['#field_name']].
+ */
+function zipcode_textfield_process($element, $edit, $form_state, $form) {
+  $field = $form['#field_info'][$element['#field_name']];
+  $field_key = $element['#columns'][0];
+  $delta = $element['#delta'];
+  $element[$field_key] = array(
+    '#type' => 'textfield',
+    '#default_value' => isset($element['#value'][$field_key]) ? $element['#value'][$field_key] : NULL,
+    '#autocomplete_path' => FALSE,
+    // The following values were set by the content module and need
+    // to be passed down to the nested element.
+    '#title' => $element['#title'],
+    '#description' => $element['#description'],
+    '#required' => $element['#required'],
+    '#field_name' => $element['#field_name'],
+    '#type_name' => $element['#type_name'],
+    '#delta' => $element['#delta'],
+    '#columns' => $element['#columns'],
+  );
+
+  if (!empty($field['max_length'])) {
+    $element[$field_key]['#maxlength'] = $field['max_length'];
+  }
+  if (!empty($field['text_processing'])) {
+    $filter_key = $element['#columns'][1];
+    $format = isset($element['#value'][$filter_key]) ? $element['#value'][$filter_key] : FILTER_FORMAT_DEFAULT;
+    $parents = array_merge($element['#parents'] , array($filter_key));
+    $element[$filter_key] = filter_form($format, 1, $parents);
+  }
+
+  // Used so that hook_field('validate') knows where to flag an error.
+  $element['_error_element'] = array(
+    '#type' => 'value',
+    '#value' => implode('][', array_merge($element['#parents'], array($field_key))),
+  );
+
+  return $element;
+}
+
+/**
+ * Theme function for 'default' text field formatter.
+ */
+function theme_zipcode_formatter_default($element) {
+  return $element['#item']['value'];
+}
+
+/**
+ * Verification for zipcodes.  
+ *
+ * @param string $text
+ * @return boolean Returns boolean FALSE if the zipcode is not valid. 
+ * On success, returns a string containting the zipcode with some formatting.
+ */
+ 
+/**
+ * Verification for zipcodes.
+ *
+ * @param string $countrycode
+ * @param string $zipcodestring
+ * @return boolean Returns boolean FALSE if the zipcode is not valid.  
+ */
+function valid_zipcode($countrycode, $zipcodestring) {
+
+  $countrycode = trim($countrycode); 
+  $zipcodestring = trim($zipcodestring);
+
+  if ($countrycode == 'fr' 
+  	|| $countrycode == 'ca'
+  	|| $countrycode == 'us'
+  	|| $countrycode == 'uk'
+  	|| $countrycode == 'nl'
+  	|| $countrycode == 'au'
+  	|| $countrycode == 'dk'
+  	|| $countrycode == 'pt'  	
+  	) {  
+	
+        //drupal_set_message('langue = ' . $countrycode, 'error');
+
+  	$valid_zipcode_function = 'valid_'. $countrycode . '_zipcode';  	
+  	module_load_include('inc', 'zipcode', 'zipcode.'. $countrycode);
+  	
+	if (function_exists($valid_zipcode_function)) {
+	    return $valid_zipcode_function($zipcodestring);
+	}
+	else  { 
+	    return FALSE; 	
+	}
+  }
+  else {
+  	//Country not taken into account yet 
+  	return FALSE; 
+  }
+}  
+	
+/**
+ * Formatting for Zipcode.  
+ *
+ * @param string $countrycode
+ * @param string $zipcodestring
+ * @return string Returns a string containting the zipcode with some formatting.
+ */
+function format_zipcode($countrycode, $zipcodestring, $field) {
+
+  $countrycode = trim($countrycode); 
+  $zipcodestring = trim($zipcodestring);
+
+  if ($countrycode == 'fr' 
+  	|| $countrycode == 'ca'
+  	|| $countrycode == 'us'
+  	|| $countrycode == 'uk'
+  	|| $countrycode == 'nl'
+  	|| $countrycode == 'au'
+  	|| $countrycode == 'dk'
+  	|| $countrycode == 'pt'  	
+  	) {    	
+	
+        //drupal_set_message('langue = ' . $countrycode, 'error');       
+
+  	$format_zipcode_function = 'format_'. $countrycode . '_zipcode';  	
+  	module_load_include('inc', 'zipcode', 'zipcode.'. $countrycode);
+  	
+	if (function_exists($format_zipcode_function)) {
+	    return $format_zipcode_function($zipcodestring, $field);
+	}
+	else {
+	    return FALSE; 
+	}
+  }
+  else {
+  	//Country not taken into account yet   
+  	return FALSE; 
+  }
+}  

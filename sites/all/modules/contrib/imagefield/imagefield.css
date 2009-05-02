@@ -1,0 +1,10 @@
+/* $Id: imagefield.css,v 1.9 2009/03/28 03:09:27 quicksketch Exp $ */
+
+.filefield-element .imagefield-preview {
+  min-width: 100px;
+  min-height: 100px;
+}
+
+.filefield-element .imagefield-text {
+  width: 40em; /* Reflect the maxlength of the ALT attribute (80 characters). */
+}

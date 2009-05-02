@@ -1,0 +1,23 @@
+div.reviewed-node{
+  float:left;
+  padding:5px 5px 5px 5px;
+  margin:5px 10px 5px 0px;
+  border:1px solid #ccc;
+  text-align:center;
+  display:block;
+  width:120px;
+  overflow:hidden;
+  clear:after;
+  font-size:10px;
+  max-height:150px;
+}
+div.reviewed-node .field-label{
+  display:none;
+}
+div.reviewed-node:hover{
+  background:#eee none;
+}
+
+.view-biliblog .clear-block{
+  clear:both;
+}
