@@ -36,7 +36,9 @@ function zipcode_field_info() {
     'nl_zipcode' => array('label' => t('Dutch zipcodes')),
     'au_zipcode' => array('label' => t('Australian zipcodes')),    
     'dk_zipcode' => array('label' => t('Danish zipcodes')),
-    'pt_zipcode' => array('label' => t('Portuguese zipcodes')),    
+    'pt_zipcode' => array('label' => t('Portuguese zipcodes')),
+    //added for indian pincode as zipcode
+    'in_zipcode' => array('label' => t('Indian zipcodes')),
    );
 }
 
@@ -134,7 +136,13 @@ function zipcode_field_settings($op, $field) {
       	$columns = array(
         	'value' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
       	);
-      }         
+      }
+      //added for indian pincode as zipcode
+      if ($field['type'] == 'in_zipcode') { 
+      	$columns = array(
+        	'value' => array('type' => 'varchar', 'length' => 255, 'not null' => TRUE),
+      	);
+      } 
       return $columns;
   }
 }
@@ -202,7 +210,11 @@ function zipcode_field($op, &$node, $field, &$node_field, $teaser, $page) {
           } 
           if ($field['type'] == 'pt_zipcode' &&  !valid_zipcode('pt', $item['value'])) {
 	    form_set_error($field['field_name'], t('"%value" is not a valid Portuguese zipcode.<br>Zipcodes should contain 4 numbers',array('%value' => $item['value'])));
-          }   
+          }
+	  //added for indian pincode as zipcode
+	  if ($field['type'] == 'in_zipcode' &&  !valid_zipcode('in', $item['value'])) {
+	    form_set_error($field['field_name'], t('"%value" is not a valid Indian zipcode.<br>Zipcodes should contain 6 numbers like - 190001',array('%value' => $item['value'])));
+          }
         }
       }
       break;
@@ -234,6 +246,10 @@ function zipcode_field($op, &$node, $field, &$node_field, $teaser, $page) {
           }
           if ($field['type'] == 'pt_zipcode') {
             $node_field[$delta]['value'] = format_zipcode('pt', $node_field[$delta]['value'], $field);
+          }
+	  //added for indian pincode as zipcode
+	  if ($field['type'] == 'in_zipcode') {
+            $node_field[$delta]['value'] = format_zipcode('in', $node_field[$delta]['value'], $field);
           }
         }
       }
@@ -333,7 +349,8 @@ function zipcode_field_formatter_info() {
       			'nl_zipcode', 
       			'au_zipcode',
       			'dk_zipcode',
-      			'pt_zipcode'      			
+      			'pt_zipcode',
+			'in_zipcode'
       			),
       'multiple values' => CONTENT_HANDLE_CORE,		      			
     ),
@@ -404,7 +421,8 @@ function zipcode_widget_info() {
       			'nl_zipcode', 
       			'au_zipcode',
       			'dk_zipcode',
-      			'pt_zipcode'      			
+      			'pt_zipcode',
+			'in_zipcode'
       			),
       'multiple values' => CONTENT_HANDLE_CORE,
       'callbacks' => array(
@@ -616,7 +634,8 @@ function valid_zipcode($countrycode, $zipcodestring) {
   	|| $countrycode == 'au'
   	|| $countrycode == 'dk'
   	|| $countrycode == 'pt'  	
-  	) {  
+	|| $countrycode == 'in'  	  
+	) {  
 	
         //drupal_set_message('langue = ' . $countrycode, 'error');
 
@@ -655,7 +674,8 @@ function format_zipcode($countrycode, $zipcodestring, $field) {
   	|| $countrycode == 'nl'
   	|| $countrycode == 'au'
   	|| $countrycode == 'dk'
-  	|| $countrycode == 'pt'  	
+  	|| $countrycode == 'pt'
+	|| $countrycode == 'in'  	
   	) {    	
 	
         //drupal_set_message('langue = ' . $countrycode, 'error');       

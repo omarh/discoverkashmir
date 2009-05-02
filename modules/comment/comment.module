@@ -217,7 +217,8 @@ function comment_menu() {
   );
 
   $items['comment/delete'] = array(
-    'title' => 'Delete comment',
+    //'title' => 'Delete comment',
+    'title' => 'Delete review',
     'page callback' => 'comment_delete',
     'access arguments' => array('administer comments'),
     'type' => MENU_CALLBACK,
@@ -225,14 +226,16 @@ function comment_menu() {
   );
 
   $items['comment/edit'] = array(
-    'title' => 'Edit comment',
+    //'title' => 'Edit comment',
+    'title' => 'Edit review',
     'page callback' => 'comment_edit',
     'access arguments' => array('post comments'),
     'type' => MENU_CALLBACK,
     'file' => 'comment.pages.inc',
   );
   $items['comment/reply/%node'] = array(
-    'title' => 'Reply to comment',
+    //'title' => 'Reply to comment',
+    'title' => 'Reply to review',
     'page callback' => 'comment_reply',
     'page arguments' => array(2),
     'access callback' => 'node_access',
@@ -416,20 +419,23 @@ function comment_link($type, $node = NULL, $teaser = FALSE) {
 
         if ($all) {
           $links['comment_comments'] = array(
-            'title' => format_plural($all, '1 comment', '@count comments'),
+            //'title' => format_plural($all, '1 comment', '@count comments'),
+            'title' => format_plural($all, '1 Review', '@count Reviews'),
             'href' => "node/$node->nid",
-            'attributes' => array('title' => t('Jump to the first comment of this posting.')),
-            'fragment' => 'comments'
+            'attributes' => array('title' => t('Jump to the first review of this posting.')),
+            //'fragment' => 'comments'
+            'fragment' => 'Reviews'
           );
 
           $new = comment_num_new($node->nid);
 
           if ($new) {
             $links['comment_new_comments'] = array(
-              'title' => format_plural($new, '1 new comment', '@count new comments'),
+              //'title' => format_plural($new, '1 new comment', '@count new comments'),
+              'title' => format_plural($new, '1 new review', '@count new reviews'),
               'href' => "node/$node->nid",
               'query' => comment_new_page_count($all, $new, $node),
-              'attributes' => array('title' => t('Jump to the first new comment of this posting.')),
+              'attributes' => array('title' => t('Jump to the first new review of this posting.')),
               'fragment' => 'new'
             );
           }
@@ -438,9 +444,11 @@ function comment_link($type, $node = NULL, $teaser = FALSE) {
           if ($node->comment == COMMENT_NODE_READ_WRITE) {
             if (user_access('post comments')) {
               $links['comment_add'] = array(
-                'title' => t('Add new comment'),
+                //'title' => t('Add new comment');
+                'title' => t('Add Review'),
                 'href' => "comment/reply/$node->nid",
-                'attributes' => array('title' => t('Add a new comment to this page.')),
+                //'attributes' => array('title' => t('Add a new comment to this page.')),
+                'attributes' => array('title' => t('Add a new review to this page.')),
                 'fragment' => 'comment-form'
               );
             }
@@ -459,7 +467,8 @@ function comment_link($type, $node = NULL, $teaser = FALSE) {
         if (user_access('post comments')) {
           if (variable_get('comment_form_location_'. $node->type, COMMENT_FORM_SEPARATE_PAGE) == COMMENT_FORM_SEPARATE_PAGE) {
             $links['comment_add'] = array(
-              'title' => t('Add new comment'),
+                 //'title' => t('Add new comment');
+              'title' => t('Add review'),
               'href' => "comment/reply/$node->nid",
               'attributes' => array('title' => t('Share your thoughts and opinions related to this posting.')),
               'fragment' => 'comment-form'
@@ -555,7 +564,8 @@ function comment_form_alter(&$form, $form_state, $form_id) {
     );
     $form['comment']['comment_preview'] = array(
       '#type' => 'radios',
-      '#title' => t('Preview comment'),
+      //'#title' => t('Preview comment'),
+      '#title' => t('Preview review'),
       '#default_value' => variable_get('comment_preview_'. $form['#node_type']->type, COMMENT_PREVIEW_REQUIRED),
       '#options' => array(t('Optional'), t('Required')),
       '#description' => t("Forces a user to look at their comment by clicking on a 'Preview' button before they can actually add the comment"),
@@ -1369,7 +1379,8 @@ function comment_form(&$form_state, $edit, $title = NULL) {
 
   $form['comment_filter']['comment'] = array(
     '#type' => 'textarea',
-    '#title' => t('Comment'),
+    //'#title' => t('Comment'),
+    '#title' => t('Review'),
     '#rows' => 15,
     '#default_value' => $default,
     '#required' => TRUE,
@@ -1425,7 +1436,8 @@ function comment_form_box($edit, $title = NULL) {
 function comment_form_add_preview($form, &$form_state) {
   global $user;
   $edit = $form_state['values'];
-  drupal_set_title(t('Preview comment'));
+  //drupal_set_title(t('Preview comment'));
+  drupal_set_title(t('Preview Review'));
 
   $output = '';
   $node = node_load($edit['nid']);
@@ -1794,11 +1806,11 @@ function theme_comment_post_forbidden($node) {
 
       if (variable_get('user_register', 1)) {
         // Users can register themselves.
-        return t('<a href="@login">Login</a> or <a href="@register">register</a> to post comments', array('@login' => url('user/login', array('query' => $destination)), '@register' => url('user/register', array('query' => $destination))));
+        return t('<a href="@login">Login</a> or <a href="@register">register</a> to post Review', array('@login' => url('user/login', array('query' => $destination)), '@register' => url('user/register', array('query' => $destination))));
       }
       else {
         // Only admins can add new users, no public registration.
-        return t('<a href="@login">Login</a> to post comments', array('@login' => url('user/login', array('query' => $destination))));
+        return t('<a href="@login">Login</a> to post Review', array('@login' => url('user/login', array('query' => $destination))));
       }
     }
   }

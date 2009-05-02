@@ -1,0 +1,6 @@
+; $Id$
+name = Child Nodes Display
+description = Retrieval of child nodes for a node.
+package = Other
+core = 6.x
+

@@ -242,9 +242,12 @@ function comment_confirm_delete(&$form_state, $comment) {
   $form['#comment'] = $comment;
   return confirm_form(
     $form,
-    t('Are you sure you want to delete the comment %title?', array('%title' => $comment->subject)),
+   // t('Are you sure you want to delete the comment %title?', array('%title' => $comment->subject)),
+    //'node/'. $comment->nid,
+    t('Are you sure you want to delete the review %title?', array('%title' => $comment->subject)),
     'node/'. $comment->nid,
-    t('Any replies to this comment will be lost. This action cannot be undone.'),
+    //t('Any replies to this comment will be lost. This action cannot be undone.'),
+    t('Any replies to this review will be lost. This action cannot be undone.'),
     t('Delete'),
     t('Cancel'),
     'comment_confirm_delete');
@@ -254,7 +257,8 @@ function comment_confirm_delete(&$form_state, $comment) {
  * Process comment_confirm_delete form submissions.
  */
 function comment_confirm_delete_submit($form, &$form_state) {
-  drupal_set_message(t('The comment and all its replies have been deleted.'));
+  //drupal_set_message(t('The comment and all its replies have been deleted.'));
+  drupal_set_message(t('The review and all its replies have been deleted.'));
 
   $comment = $form['#comment'];
 

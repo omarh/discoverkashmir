@@ -100,3 +100,9 @@ function phptemplate_get_ie_styles() {
 
   return $iecss;
 }
+
+function garland_comment_wrapper($html, $node) {
+  $html = empty($html)?'No user reviews for this node': $html;
+  $html = '<div id="comments"><h2 class="comments">User Reviews</h2>'.$html.'</div>';
+  return $html;
+}
