@@ -1,0 +1,59 @@
+/* $Id: changelog.txt,v 1.7.2.10 2009/03/13 02:28:02 aaron Exp $ */
+
+/**
+ *  @file
+ *  Changelog for Embedded Thumbnail Field.
+ */
+
+March 2008
+----------
+ * Change filename creation for automatic thumbs (aaron).
+ * Add support for the Transliteration module (aaron).
+ * Strip out the query if provided in a thumbnail filepath (aaron).
+
+February 2009
+-------------
+ * Fix image path for thumbnail storage (aaron).
+ * Use $field['widget']['emthumb_image_path']) folder for remote thumbs (aaron).
+ * Settings for controlling storage of remote thumbs (aaron).
+ * Fetch remote images (aaron).
+
+January 2009
+------------
+ * Upgrade to Drupal 6 (aaron).
+
+December 2008
+-------------
+ * Implode #description of element (aaron).
+ * Add field & delta info to element (aaron).
+ * Refactor emthumb_widget and add theme function that calls theme_filefield_widget (aaron).
+ * Begin integrating filefield into emthumb_emfield_widget_extra (aaron).
+ * Factor in filefield widget & field settings (aaron/oweno).
+ * Add hook_elements (aaron/oweno).
+ * Add requirement of filefield (aaron/oweno).
+
+November 2008
+-------------
+ * Create $form['imagefield_test'] to test imagefield widget integration (aaron).
+
+May 2008
+--------
+ * #249255 - ekes added MRSS support to multiple files (aaron/ekes).
+
+April 2008
+----------
+ * #239374 Can't turn off custom thumbnail feature on node/add for video and image.
+
+February 2008
+-------------
+ * #216553- patch by dalin to increase max length to $form['emthumb']['emthumb_description'] (aaron/dalin).
+ * #213447- patch by jhedstrom to change paths in emthumb_thumbnail_url() from relative to absolute (aaron/jhedstrom).
+
+January 2008
+------------
+ * Remove references to imagefield (aaron).
+ * #207165/vnd remove debug code (aaron/vnd).
+ * #207085/vnd Fatal error: Cannot access empty property (aaron/vnd).
+ * Remove debugging statements on multiple (aaron).
+ * Fix array_push bug (aaron).
+ * Created emthumb module (aaron).
