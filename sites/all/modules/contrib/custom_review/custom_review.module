@@ -1,0 +1,579 @@
+<?php
+// $Id: custom_review.module,v 1.7 2008/10/12 16:15:41 striky2 Exp $
+
+/**
+ * @file custom_review.module
+ *
+ * This module provides a way to make reviews (which are actually cck-types we can call reviewers) accessible from
+ * a block on other nodes.
+ *
+ */
+
+
+/**
+ * Caches the array for binding reviewer_node_types and reviewed_node_types.
+ */
+global $_custom_review_reviewers;
+
+/****************************/
+/*** Module hooks section ***/
+/****************************/
+
+/**
+ * Implementation of hook_help().
+ */
+function custom_review_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#custom_review':
+    case 'admin/modules#description':
+      return t('allow people to do custom typed (cck-types) review on nodes');
+  }
+}
+/**
+ * Implementation of hook_menu().
+ */
+function custom_review_menu() {
+  $items['admin/settings/custom_review'] = array(
+      'title' => 'Custom review',
+      'description' => 'Custom review bind',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('custom_review_binding_form'),
+      'access arguments' => user_access('administer custom review')
+    );
+  
+  return $items;
+}
+/**
+ * Implementation of hook_nodeapi().
+ */
+function custom_review_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
+  global $_custom_review_reviewers;
+  global $user;
+
+  if (empty($_custom_review_reviewers)) {
+    $_custom_review_reviewers = custom_review_get_reviewers();
+  }
+
+  if ($op == 'delete') {
+    //be responsible, if a node reviewee is deleted, also delete the reviews!
+    db_query("DELETE FROM {custom_reviews} WHERE nid = %d", $node->nid);
+  }
+
+  if (array_key_exists($node->type, $_custom_review_reviewers)) {
+    switch ($op) {
+      case 'delete':
+        if (is_numeric($node->nid)) {
+          //here nid is actually a rid.
+          $reviewed_id = custom_review_get_reviewed_node($node->nid);
+          db_query("DELETE FROM {custom_reviews} WHERE rid = %d", $node->nid);
+          drupal_goto('node/'. $reviewed_id);
+        }
+        break;
+      case 'insert':
+        db_query("INSERT INTO {custom_reviews} (rid, nid) VALUES (%d, %d)", $node->nid, arg(3));
+        drupal_set_message(t('Your review has been posted'));
+        drupal_goto('node/'. arg(3));
+        break;
+      case 'update':
+        $reviewed_id = custom_review_get_reviewed_node($node->nid);
+        drupal_goto('node/'. $reviewed_id);
+        break;
+      case 'view':
+        //find node reviewed nid
+        global $base_url;
+        drupal_add_css(drupal_get_path('module', 'custom_review') .'/custom_review.css');
+        $node_reviewed = node_load(custom_review_get_reviewed_node($node->nid));
+        $node_reviewed = node_build_content($node_reviewed, TRUE, $page);
+        //dump($node_reviewed);
+        $node->content['reviewed_node'] = array(
+          '#prefix' => "<div id='reviewed-node-". $node_reviewed->nid ."' class='reviewed-node'>
+        <a href='$base_url/node/$node_reviewed->nid' class='reviewed-link'>",
+          '#suffix' => "</a></div>",
+          '#value' => l($node_reviewed->title, 'node/'. $node_reviewed->nid) . drupal_render($node_reviewed->content),
+          '#weight' => -5,
+        );
+    }
+  }
+}
+/**
+ * Implementation of hook_perm()
+ *
+ * There is no need of create custom review perm, because of the create content (node type)
+ * already existing perm
+ */
+function custom_review_perm() {
+  return array('administer custom review');
+}
+/**
+ * Implementation of hook_block
+ */
+function custom_review_block($op = 'list', $delta = 0, $edit = array()) {
+  global $user;
+
+  switch ($op) {
+    case 'list':
+      $blocks[0]['info'] = t('Custom review: links to reviews');
+      $blocks[0]['title'] = t('My reviews');
+      return $blocks;
+    case 'configure':
+      return $form;
+    case 'view':
+      if ($delta == 0) {
+        $block['subject'] = '';
+        $block['content'] = custom_review_build_special_form();
+        return $block;
+      }
+      return NULL;
+  }
+}
+/**
+ * Implementation of hook_form_alter()
+ *
+ * @param $form_id
+ * @param &$form
+ */
+function custom_review_form_alter(&$form, &$form_state, $form_id) {
+  global $_custom_review_reviewers;
+
+  if (empty($_custom_review_reviewers)) {
+    $_custom_review_reviewers = custom_review_get_reviewers();
+  }
+
+  $short_type = substr($form_id, 0, -10); // 'short_type_node_form' => 'short_type'
+  if (array_key_exists($short_type, $_custom_review_reviewers)) {
+    //dump($form_state);
+
+    //if add form: take the argument url passed from reviewed node
+    //if edit form: take the reviewed from the review id
+    if (arg(1) == 'add') {
+      $reviewed_id = arg(3);
+    }
+    else if (arg(2) == 'edit') {
+      $reviewed_id = custom_review_get_reviewed_node($form['nid']['#value']);
+    }
+
+    $node = node_load($reviewed_id);
+    $node = node_build_content($node, TRUE, FALSE);
+    $content = drupal_render($node->content);
+    $form['#validate'][] = 'custom_review_form_validate';
+    $form['custom_review_node'] = array(
+      '#type' => 'fieldset',
+      '#weight' => -10,
+      '#title' => t("Currently reviewing: ") . t($node->title),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    $form['custom_review_node']['node_reviewed'] = array(
+      '#value' => $content,
+    );
+    $form['cancel'] = array(
+      '#type' => 'submit',
+      '#value' => t('Cancel'),
+      '#weight' => -9,
+    );
+  }
+}
+/**
+ * Implementation of hook_form_validate()
+ *
+ * @param $form_id
+ * @param $form_values
+ */
+function custom_review_form_validate($form, &$form_state) {
+  // Go back to the initial node if user_cancel
+  global $_custom_review_reviewers;
+
+  if (empty($_custom_review_reviewers)) {
+    $_custom_review_reviewers = custom_review_get_reviewers();
+  }
+
+  $short_type = substr($form_id, 0, -10); // 'short_type_node_form' => 'short_type'
+  if (array_key_exists($short_type, $_custom_review_reviewers) && is_numeric(arg(3))) {
+    if ($form_states['values']['op'] == t('Cancel')) {
+      drupal_set_message(t('Cancel review operation'));
+      drupal_goto('node/'. arg(3));
+    }
+  }
+}
+
+
+
+/****************************/
+/*** Module Forms section ***/
+/****************************/
+
+/**
+ * Creates the form to be used in the block "actions"
+ *
+ * @return $form
+ */
+function custom_review_block_action_form(&$form_state) {
+  $form = array();
+
+  $form['custom_reviews'] = array(
+    '#type' => fieldset,
+    '#title' => t('Custom reviews'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  if (!empty($options['add'])) {
+    $form['custom_reviews']['add_reviews'] = array(
+      '#type' => 'select',
+      '#options' => $form_state['add'],
+    );
+    $form['custom_reviews']['add_submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Add review'),
+    );
+  }
+  if (!empty($options['edit'])) {
+    $form['custom_reviews']['edit_reviews'] = array(
+      '#type' => 'select',
+      '#options' => $form_state['edit'],
+    );
+    $form['custom_reviews']['edit_submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Edit review'),
+    );
+  }
+
+  return $form;
+}
+/**
+ * On submission of the form block_action...
+ *
+ * @param unknown_type $form_values
+ */
+function custom_review_block_action_form_submit($form, &$form_state) {
+  global $user;
+
+  if (!$user->uid) {
+    drupal_goto('user/register');
+  }
+  if (($form_state['values']['op'] == t('Add review')) && user_access("create ". $form_state['add_reviews'] ." content")) {
+    //the user is trying to add a custom review
+    drupal_goto('node/add/'. $form_state['values']['add_reviews'] .'/'. arg(1));
+  }
+  else if (($form_state['values'] == t('Edit review')) && user_access("edit own ". _custom_review_node_type($form_state['values']['edit_reviews']) ." content")) {
+    //the user is trying to edit one of its custom review
+    drupal_goto('node/'. $form_state['values']['edit_reviews'] .'/edit/'. arg(1));
+  }
+}
+/**
+ * Administration form to bind reviewers node types to reviewed node types...
+ *
+ * @param $form
+ */
+function custom_review_binding_form(&$form_state) {
+  global $_custom_review_reviewers;
+
+  if (empty($_custom_review_reviewers)) {
+    $_custom_review_reviewers = custom_review_get_reviewers();
+  }
+
+  $form['#prefix'] = "This form allows you to plug some node-types as node - reviewers for other node - types.<br/>
+  Usually, you need first to create specific CCK - types, and then to plug these types onto some other nodes, using
+  this form.";
+
+  foreach (node_get_types('names') as $key => $val) {
+    $form['custom_review_bind_'. $key] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Specify reviewed types for the reviewer tool: '. $val),
+      '#collapsible' => TRUE,
+      '#collapsed' => !array_key_exists($key, $_custom_review_reviewers),
+    );
+    $form['custom_review_bind_'. $key]['custom_review_reviewer_bind_'. $key] = array(
+      '#prefix' => "<div style='float:left;'>",
+      '#type' => 'checkbox',
+      '#title' => 'Use reviewer: '. $val,
+      '#default_value' => array_key_exists($key, $_custom_review_reviewers),
+      '#suffix' => "</div>",  
+    );
+
+    $custom_reviewed = array();
+    if ($_custom_review_reviewers[$key]) {
+      foreach (node_get_types('names') as $key_node_type => $val_node_type) {
+        if (in_array($key_node_type, $_custom_review_reviewers[$key])) {
+          $custom_reviewed[$key_node_type] = $key_node_type;
+        }
+        else {
+          $custom_reviewed[$key_node_type] = 0;
+        }
+      }
+    }
+
+    $form['custom_review_bind_'. $key]['custom_review_reviewed_bind_'. $key] = array(
+      '#prefix' => "<div style='float:left;margin-left:20px;'>",  
+      '#type' => 'checkboxes',
+      '#title' => 'To review',
+      '#default_value' =>  $custom_reviewed,
+      '#options' => node_get_types('names'),
+      '#suffix' => "</div>", 
+    );
+    $form['custom_review_bind_'. $key]['submit_'. $key] = array(
+      '#prefix' => "<div style='float:left;margin-left:50px;margin-top:30px;'>",
+      '#name' => 'submit',
+      '#type' => 'submit',
+      '#value' => t('Submit binding'),
+      '#suffix' => "</div>", 
+    );
+  }
+  
+  $form['submit'] = array(
+    '#name' => 'submit',
+    '#type' => 'submit',
+    '#value' => t('Submit binding') ,
+  );
+
+  return $form;
+}
+/**
+ * Submit action for administrators
+ *
+ * @param $form_values
+ */
+function custom_review_binding_form_submit($form, &$form_state) {
+  global $_custom_review_reviewers;
+
+  if (empty($_custom_review_reviewers)) {
+    $_custom_review_reviewers = custom_review_get_reviewers();
+  }
+
+  $created_reviews = array();
+  if (empty($form_state['values'])) {
+    
+  }
+  else {
+    foreach ($form_state['values'] as $key_form_value => $val_form_value) {
+      $reviewed_array_name = '';
+      $reviewer_name = '';
+      if (strstr($key_form_value, 'custom_review_reviewer_bind_')) {
+        //it's a reviewer
+        $reviewed_array_name = str_replace('_reviewer_bind', '_reviewed_bind', $key_form_value);
+        $reviewer_name = substr($key_form_value, 28);  
+      }  
+      if ($reviewer_name && $val_form_value) {
+        //it's a reviewer not null
+        foreach ($form_state['values'][$reviewed_array_name] as $key_reviewed_type => $val_reviewed_type) {
+          if ($val_reviewed_type) {
+            //its a reviewer-reviewed not null
+            //check if insertion is required
+            if (array_key_exists($reviewer_name, $_custom_review_reviewers) && in_array($key_reviewed_type, $_custom_review_reviewers[$reviewer_name])) {
+              //if reviewer_node_type/reviewed_node_type is already in the database ($custom_review) :
+              //do nothing
+            }
+            else {
+              //insert only one item
+              $sql = db_query("INSERT INTO {custom_review_types} VALUES ('%s','%s')", $reviewer_name, $key_reviewed_type);
+            }
+          }
+          else {
+            //its a reviewer not null && a reviewed null
+            //check if deletion is required
+            if (array_key_exists($reviewer_name, $_custom_review_reviewers) && in_array($key_reviewed_type, $_custom_review_reviewers[$reviewer_name])) {
+              //if reviewer_node_type/reviewed_node_type is in the database ($custom_review) :
+              //delete only one item
+              $sql = db_query("DELETE FROM {custom_review_types} WHERE reviewer_node_type = '%s'
+              AND reviewed_node_type = '%s'", $reviewer_name, $key_reviewed_type); 
+            }
+          }
+        }
+      }
+      else if ($reviewer_name && !$val_val_value) {
+        //it's a reviewer null
+        //check if deletion is required
+        if (array_key_exists($reviewer_name, $_custom_review_reviewers)) {
+          //if reviewer_node_type is in the database ($custom_review) : delete (may delete many items)
+          $sql = db_query("DELETE FROM {custom_review_types} WHERE reviewer_node_type = '%s'", $reviewer_name);
+        }
+      }
+    }
+  }
+  drupal_set_message('Modifications done');
+}
+
+
+/****************************/
+/**** Business functions ****/
+/****************************/
+
+/**
+ * Get the node being reviewed
+ *
+ * @param $node
+ * 	the review
+ * @return nid of the node being reviewed
+ */
+function custom_review_get_reviewed_node($node) {
+  if (is_object($node)) {
+    $node = $node->nid;
+  }
+  $sql = db_query("SELECT nid FROM {custom_reviews} WHERE rid = %d", $node);
+  $result = db_fetch_object($sql);
+
+  return $result->nid;
+}
+/**
+ * Get all the reviewers names
+ *
+ * @return $_custom_review_reviewers
+ * $_custom_review_reviewers is also a global var which is written by this function
+ */
+function custom_review_get_reviewers() {
+  $sql = db_query("SELECT * FROM {custom_review_types} ORDER BY reviewer_node_type");
+  $_custom_review_reviewers = array();
+  while ($result = db_fetch_array($sql)) {
+    $_custom_review_reviewers[$result['reviewer_node_type']][] = $result['reviewed_node_type'];
+  }
+  return $_custom_review_reviewers;
+}
+/**
+ * Give all the possible reviewer types on a node,
+ * and also declares if the user has already used the reviewer type for making his review
+ *
+ * @param $nid
+ * @param $uid
+ * 	[optional]: if not specified, take the current's user account
+ */
+function custom_review_user_can_review_node($nid, $uid = 0) {
+  if (!$uid) {
+    global $user;
+    $uid = $user->uid;
+  }
+  //get all the possible reviewer types
+
+  $reviewers = custom_review_node_get_reviewers($nid);
+  if (is_array($reviewers) && !empty($reviewers)) {
+    foreach ($reviewers as $key => $val) {
+      $sql = "SELECT CR.rid as rid, N.title as title FROM {node} N, {custom_reviews} CR WHERE
+      CR.nid = %d AND CR.rid = N.nid AND N.uid = %d AND N.type = '%s'";
+      $result = db_fetch_object(db_query($sql, $nid, $uid, $val));
+      $reviewers[$key] = $result;
+    }
+  }
+
+  return $reviewers;
+}
+/**
+ * Give all the possible reviewers types of a node (or node type)
+ *
+ * @param $node
+ * @return an array of possible reviewers
+ */
+function custom_review_node_get_reviewers($node) {
+  if (is_numeric($node)) {
+    $sql = db_query("SELECT custom_review_types.reviewer_node_type FROM {custom_review_types}, {node}
+  	WHERE node.nid = %d AND node.type = custom_review_types.reviewed_node_type", $node);
+  }
+  elseif (is_object($node)) {
+    $sql = db_query("SELECT custom_review_types.reviewer_node_type FROM {custom_review_types}, {node}
+  	WHERE node.nid = %d AND node.type = custom_review_types.reviewed_node_type", $node->nid);
+  }
+  else if (is_string($node)) { //node->type!
+    $sql = db_query("SELECT reviewer_node_type FROM {custom_review_types} WHERE reviewed_node_type = '%s'", $node);
+  }
+
+  $reviewers = array();
+  while ($result = db_fetch_array($sql)) {
+    $reviewers[$result['reviewer_node_type']] = $result['reviewer_node_type'];
+  }
+  return $reviewers;
+}
+/**
+ * Explains if a node is reviewable or not
+ *
+ * @param $node
+ * 	(nid)
+ * @return boolean
+ */
+function custom_review_node_is_reviewable($node) {
+  if (is_numeric($node)) {
+    $result = db_fetch_object(db_query("SELECT COUNT(custom_review_types.reviewed_node_type) as num FROM {node},
+    {custom_review_types} WHERE node.nid = %d AND node.type = custom_review_types.reviewed_node_type", $node));
+    return $result->num;
+  }
+  if (is_object($node)) {
+    return custom_review_node_is_reviewable($node->nid);
+  }
+  return FALSE;
+}
+/**
+ * Check if a node is a reviewer type or not
+ *
+ * @param $node
+ * @return boolean
+ * @deprecated
+ */
+function custom_review_is_reviewer_type($node) {
+  global $_custom_review_reviewers;
+
+  if (empty($_custom_review_reviewers)) {
+    $_custom_review_reviewers = custom_review_get_reviewers();
+  }
+  if (is_numeric($node)) {
+    //to be completed, need a query to get the node type from its nid
+  }
+  else if (is_object($node)) {
+    if (is_string($node->type)) {
+      return custom_review_is_reviewer_type($node->type);
+    }
+    if (is_numeric($node->nid)) {
+      return custom_review_is_reviewer_type($node->nid);
+    }
+  }
+  else if (is_string($node)) {
+    return array_key_exists($node, $_custom_review_reviewers);
+  }
+
+  return FALSE;
+}
+
+
+/*****************************/
+/** Internal module section **/
+/*****************************/
+/**
+ * Render the special form
+ */
+function custom_review_build_special_form() {
+  if ((is_numeric(arg(1))) && (custom_review_node_is_reviewable(arg(1)))) {
+    $options = array();//add/edit reviews
+
+    foreach (custom_review_user_can_review_node(arg(1)) as $reviewer => $review) {
+      if (is_object($review)) {
+        //the user has already done a review with this reviewer on this node
+        $options['edit'][$review->rid] = (strlen($review->title) < 18) ? $review->title : substr($review->title, 0, 15) ."...";
+      }
+      else {
+        $reviewer_title = db_fetch_object(db_query("SELECT name FROM {node_type} WHERE type = '%s'", $reviewer));
+        $reviewer_title = (strlen($reviewer_title->name) < 18) ? $reviewer_title->name : substr($reviewer_title->name, 0, 15) ."...";
+        $options['add'][$reviewer] = $reviewer_title;
+      }
+    }
+    return $content = drupal_get_form('custom_review_block_action_form', $options);
+  }
+  return '';
+}
+/**
+ * Render a node type
+ *
+ * @param $nid
+ * @return type
+ */
+function _custom_review_node_type($nid) {
+  $sql = db_query("SELECT type FROM {node} WHERE nid = %d", $nid);
+  $result = db_fetch_object($sql);
+  return $result->type;
+}
+/**
+ * Render a node reviewed original nid (reviewed node)
+ *
+ * @param $rid
+ * @return nid
+ */
+function _custom_review_get_nid($rid) {
+  $sql = db_query("SELECT custom_reviews.nid as nid FROM {custom_reviews} WHERE custom_reviews.rid = %d", $rid);
+  $result = db_fetch_object($sql);
+
+  return $result->nid;
+}

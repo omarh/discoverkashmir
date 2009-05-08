@@ -1,0 +1,32 @@
+.moderation-moderate, .moderation-sticky, .moderation-promote, .moderation-status {
+  display:none;
+}
+
+.moderation-comment div.preview,
+.moderation-comment div.messages {
+  display: block;
+}
+
+.moderation-messages {
+  border-color:#C7F2C8;
+  color:#33AA33;
+  background-color:#FFFFFF;
+  border:1px solid #B8D3E5;
+  margin:0.75em 0pt;
+  padding:0.5em 1em
+}
+
+.moderation-moderation {
+  float:right;
+  margin-top:-20px;
+}
+
+.moderation-attribute {
+  padding: 0 10px;
+  float:right;
+}
+
+.moderation-username {
+  padding-left:0;
+  float: left;
+}

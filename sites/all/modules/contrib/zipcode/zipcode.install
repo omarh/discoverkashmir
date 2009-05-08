@@ -1,0 +1,64 @@
+<?php
+// $Id: zipcode.install,v 1.3 2009/03/07 23:52:51 thierrygd Exp $
+
+/**
+ * @file
+ * Defines zipcode number fields for CCK.
+ * Installation file
+ */
+
+/**
+ * Implementation of hook_content_notify().
+ *
+ * This hook should be implemented inside hook_install(), hook_uninstall(),
+ * hook_enable() and hook_disable(), and is used to notify the content
+ * module when a field module is added or removed so it can respond
+ * appropriately. One use of this hook is to allow the content module
+ * to remove fields and field data created by this module when the
+ * module is uninstalled.
+ *
+ * The recommended location for these hooks is in the module's .install file.
+ */
+ 
+/**
+ * Implementation of hook_install().
+ */
+function zipcode_install() {
+  drupal_load('module', 'content');
+  content_notify('install', 'zipcode');
+  drupal_set_message(t('Zipcode module installed successfully.'));  
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function zipcode_uninstall() {
+  drupal_load('module', 'content');
+  content_notify('uninstall', 'zipcode');
+}
+
+/**
+ * Implementation of hook_enable().
+ *
+ * Notify content module when this module is enabled.
+ */
+function zipcode_enable() {
+  drupal_load('module', 'content');
+  
+  //The 2 next lines are for 5.x to 6.x upgrade 
+  db_query("UPDATE {". content_instance_tablename() ."} SET widget_module = 'zipcode' WHERE widget_type = 'zipcode'");  
+  db_query("UPDATE {". content_instance_tablename() ."} SET widget_type = 'zipcode_textfield' WHERE widget_type = 'zipcode'");
+    
+  content_notify('enable', 'zipcode');
+}
+
+/**
+ * Implementation of hook_disable().
+ *
+ * Notify content module when this module is disabled.
+ */
+function zipcode_disable() {
+  drupal_load('module', 'content');
+  content_notify('disable', 'zipcode');
+}
+

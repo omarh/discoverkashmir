@@ -1,0 +1,295 @@
+<?php
+// $Id: modr8.module,v 1.25 2008/10/21 15:14:07 pwolanin Exp $
+
+/**
+ * @file
+ * Easy dedicated content moderation
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function modr8_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#modr8':
+      return '<p>'. t("Easy, dedicated moderation of content. Assign the 'moderate content' permission to one or mode user roles. Set up the default moderation option for each node type.") .'</p>';
+    // OPTIONAL: Add additional cases for other paths that should display help text.
+  }
+}
+
+/**
+ * An access function for Moderation Menu Tab
+ */
+function modr8_moderation_access($nid) {
+  return user_access('moderate content') && db_result(db_query("SELECT COUNT(*) FROM {modr8_log} ml WHERE ml.nid = %d", $nid));
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function modr8_menu() {
+  $items = array();
+
+  $items['admin/content/modr8'] = array(
+    'title' => 'Moderated content',
+    'description' => 'Approve or delete moderated content.',
+    'access callback' => 'user_access',
+    'access arguments' => array('moderate content'),
+    'page callback' => 'modr8_page',
+    'file' => 'modr8_admin.inc',
+  );
+  $items['admin/reports/modr8'] = array(
+    'title' => 'Content moderation log',
+    'description' => 'Show log of all actions on moderated content.',
+    'access callback' => 'user_access',
+    'access arguments' => array('moderate content'),
+    'page callback' => 'modr8_log_view',
+    'file' => 'modr8_admin.inc',
+  );
+  $items['admin/settings/modr8'] = array(
+    'title' => 'Modr8 settings',
+    'description' => 'Configure content moderation.',
+    'page callback' => 'modr8_settings',
+    'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'modr8_admin.inc',
+  );
+  $items['node/%/modr8'] = array(
+    'title' => 'Moderation',
+    'page callback' => 'modr8_log_view',
+    'page arguments' => array('node', 1),
+    'access callback' => 'modr8_moderation_access',
+    'access arguments' => array(1),
+    'file' => 'modr8_admin.inc',
+    'weight' => 10,
+    'type' => MENU_LOCAL_TASK
+  );
+  $items['node/%node/log/response/%'] = array(
+    'title' => 'Moderation response',
+    'page callback' => 'modr8_response_page',
+    'page arguments' => array(1),
+    'access callback' => 'modr8_response_access',
+    'access arguments' => array(1, 4),
+    'file' => 'modr8_admin.inc',
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Access callback.
+ */
+function modr8_response_access($node, $token) {
+
+  return ($token == modr8_response_token($node->nid, $node->uid));
+}
+
+/**
+ * Generate a token for responding to a node in moderation.
+ *
+ * Calculates a HMAC-MD5 according to RFC2104 (http://www.ietf.org/rfc/rfc2104.txt).
+ */
+function modr8_response_token($nid, $uid) {
+  $key = md5(drupal_get_private_key() .'modr8token');
+
+  return bin2hex(
+    pack("H*", md5((str_pad($key, 64, chr(0x00)) ^ (str_repeat(chr(0x5c), 64))) .
+    pack("H*", md5((str_pad($key, 64, chr(0x00)) ^ (str_repeat(chr(0x36), 64))) .
+    $nid .':'. $key .':'. $uid))))
+  );
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function modr8_perm() {
+  return array('moderate content');
+}
+
+/**
+ * menu callback for settings form.
+ */
+function modr8_settings() {
+
+  return drupal_get_form('modr8_settings_form');
+}
+
+/**
+ * Implementation of hook_nodeapi().
+ */
+function modr8_nodeapi(&$node, $op, $teaser = NULL, $page = NULL) {
+  // add messages here..
+  switch ($op) {
+    case 'load':
+      return db_fetch_array(db_query('SELECT n.moderate FROM {node} n WHERE n.nid = %d', $node->nid));
+    case 'prepare':
+      if (!isset($node->nid)) {//a new node
+        $node_options = variable_get('node_options_'. $node->type, array('status', 'promote'));
+        $node->moderate = in_array('moderate', $node_options);
+      }
+      break;
+    case 'view':
+      if ($node->moderate && empty($node->modr8_form_teaser) && ($node->build_mode == NODE_BUILD_NORMAL) && ($teaser || $page)) {
+        $node->content['modr8_message'] = array(
+          '#value' => theme('modr8_message', $teaser, $node->type, 'view'),
+          '#weight' => -100,
+        );
+      }
+      break;
+    case 'update' :
+    case 'insert' :
+      db_query('UPDATE {node} SET moderate = %d WHERE nid = %d', $node->moderate, $node->nid);
+      if ($node->moderate) { //cut this?
+        theme('modr8_message', FALSE, $node->type, $op);
+      }
+      break;
+    case 'delete':
+      // Delete log entries when a node is deleted, unless it's deleted while
+      // in moderation.  In the latter case, we want to retain the log to see
+      // which moderator deleted the node  and any message they sent.
+      if (!$node->moderate) {
+        db_query("DELETE FROM {modr8_log} WHERE nid = %d", $node->nid);
+      }
+      break;
+  }
+}
+
+function modr8_form_alter(&$form, $form_state, $form_id) {
+
+  if (isset($form['type']['#value']) && $form['type']['#value'] .'_node_form' == $form_id)  {
+
+    $moderate_checkbox = array(
+      '#type' => 'checkbox',
+      '#title' => t('In moderation queue'),
+      '#default_value' => $form['#node']->moderate,
+      '#weight' => 24,
+      '#description' => t('This %type will be placed in moderation if the %moderate checkbox is selected.', array('%type' => node_get_types('name', $form['#node']), '%moderate' => t('In moderation queue'))),
+    );
+    if (user_access('administer nodes')) {
+      $form['options']['moderate'] = $moderate_checkbox;
+    }
+    elseif (user_access('moderate content')) {
+      $form['moderate'] = $moderate_checkbox;
+    }
+    else {
+      $form['moderate'] = array(
+        '#type' => 'value',
+        '#value' => $form['#node']->moderate,
+      );
+      if ($form['#node']->moderate) {
+        $form['modr8_message'] = array(
+          '#value' => theme('modr8_message', FALSE, $form['#node']->type, 'node_form'),
+          '#weight' => -100,
+        );
+      }
+    }
+  }
+  elseif ($form_id == 'node_type_form') {
+    $form['workflow']['node_options']['#options']['moderate'] = t('In moderation queue');
+  }
+}
+
+/**
+ * Implementation of hook_db_rewrite_sql().
+ */
+function modr8_db_rewrite_sql($query, $primary_table, $primary_field, $args) {
+  switch ($primary_field) {
+    case 'nid':
+      // this query deals with node objects
+      $access = (user_access('administer nodes') || user_access('moderate content'));
+      if (!$access) {
+        global $user;
+        $return = array();
+        if ($primary_table != 'n') {
+          $return['join'] = "LEFT JOIN {node} n ON $primary_table.nid = n.nid";
+        }
+        if ($user->uid == 0) {
+          $return['where'] = "(n.moderate != 1)";
+        }
+        else {
+          $return['where'] = "(n.moderate != 1 OR n.uid = ". (int)$user->uid .")";
+        }
+        return $return;
+      }
+      break;
+
+  }
+}
+
+/**
+ * Implementation of hook_cron().
+ *
+ * Remove expired moderation log events.
+ */
+function modr8_cron() {
+  if ($log_clear = variable_get('modr8_log_clear', 0)) {
+    db_query('DELETE FROM {modr8_log} WHERE timestamp < %d', time() - $log_clear);
+  }
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function modr8_block($op = 'list', $delta = 0) {
+  if ($op == 'list') {
+    $blocks[0]['info'] = t("Modr8 moderator's block");
+    return $blocks;
+  }
+  elseif ($op == 'view') {
+    if (user_access('moderate content')) {
+      $block['subject'] = t('Moderation queue');
+      $is_published = '';
+      if (!user_access('administer nodes')) {
+        // Users who don't have the 'administer nodes' permission can only see published nodes.
+        $is_published = 'n.status = 1 AND ';
+      }
+      $count = db_result(db_query(db_rewrite_sql('SELECT COUNT(*) FROM {node} n WHERE '. $is_published .' n.moderate = 1')));
+      $content = '<p>'. l(t('@items in moderation', array('@items' => format_plural($count, '1 post', '@count posts'))), 'admin/content/modr8') .'</p>';
+      if ($count) {
+        $sql = db_rewrite_sql('SELECT n.nid, n.title FROM {node} n WHERE '. $is_published .' n.moderate = 1 ORDER BY n.changed DESC');
+        $result = db_query_range($sql, 0, 6);
+        $content .= node_title_list($result, t('Recent additions:'));
+      }
+      $block['content'] = $content;
+      return $block;
+    }
+  }
+}
+/**
+ * Implementation of hook_theme().
+ */
+function modr8_theme() {
+  return array(
+    'modr8_message' => array('arguments' => array('teaser', 'nodetype', 'op')),
+    'modr8_form' => array('arguments' => array('form')),
+    'moderation_event' => array('arguments' => array('event')),
+    'modr8_note' => array('arguments' => array('note')),
+
+  );
+}
+/**
+ * Theming function for messages.
+ */
+function theme_modr8_message($teaser = FALSE, $nodetype = 'page', $op = 'view') {
+  static $already_messaged = FALSE;
+  // Don't add the message more than once per page load.
+  if ($already_messaged) {
+    return;
+  }
+  if ($teaser) {
+    return ' <div class="marker">'. t('Pending moderation') .'</div>';
+  }
+  else {
+    switch ($op) {
+      case 'view':
+        drupal_set_message(t("The post has been submitted for moderation and won't be listed publicly until it has been approved."), 'warning');
+        break;
+      case 'node_form':
+        drupal_set_message(t('This %type will be submitted for moderation and will not be accessible to other users until it has been approved.', array('%type' => node_get_types('name', $nodetype))));
+        break;
+    }
+    return '';
+  }
+  $already_messaged = TRUE;
+}

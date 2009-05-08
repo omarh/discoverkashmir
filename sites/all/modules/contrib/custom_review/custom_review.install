@@ -1,0 +1,63 @@
+<?php
+// $Id: custom_review.install,v 1.4 2008/10/12 16:15:41 striky2 Exp $
+
+
+function custom_review_schema() {
+	$schema['custom_reviews'] = array(
+	
+	
+    'fields' => array(
+      'rid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => t('Primary Key: Unique term ID.'),
+        ),
+        
+        'nid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        ),
+        ),
+         'primary key' => array('rid'),
+    
+     
+	);
+
+	$schema['custom_review_types'] = array(
+    'fields' => array(
+     'reviewer_node_type' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('The term name.'),
+    ),
+    
+    'reviewed_node_type' => array(
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t('The term name.'),
+         
+         
+         ),
+        ),
+    'primary key' => array('reviewer_node_type', 'reviewed_node_type'),
+);
+return $schema;
+}
+
+function custom_review_install() {
+  // Create my tables.
+  drupal_install_schema('custom_review');
+}
+
+function custom_review_uninstall() {
+  // Drop my tables.
+  drupal_uninstall_schema('custom_review');
+}

@@ -1,0 +1,30 @@
+/* $Id: changelog.txt,v 1.1.4.15 2008/12/19 18:17:14 aaron Exp $ */
+
+December 2008
+=============
+ * #339025/moonray - Provide node info to providers take 2 (aaron/moonray).
+ * #345383/moonray - Allow hook_menu() in providers (aaron/moonray).
+ * #339025/moonray - Provide node info to theme functions (aaron/moonray).
+ * #337997 - Got emaudio up and running (alexua and moonray)
+
+November 2008
+=============
+ * Make sure $options are set before using (aaron).
+ * Add $options to theme functions (aaron).
+
+May 2008
+========
+ * Widget info.
+ * 'callbacks' => array('tables' => CONTENT_CALLBACK_DEFAULT, 'arguments' => CONTENT_CALLBACK_DEFAULT, ),
+ * case 'database columns': return module_invoke('emfield', 'field_columns', $field);
+ * content_notify in .install files
+ * Implement hook_content_is_empty
+
+February 2008
+=============
+ * Add provider views handlers
+
+January 2008
+============
+ * Began development for emaudio (aaron).
+ * Added Odeo and Podcast Alley Support (aaron).

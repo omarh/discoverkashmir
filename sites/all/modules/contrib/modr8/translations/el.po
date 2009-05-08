@@ -1,0 +1,392 @@
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  modr8_admin.inc,v 1.14 2008/03/03 02:59:20 pwolanin
+#  modr8.module,v 1.18 2008/03/03 02:59:20 pwolanin
+#  modr8.info,v 1.2 2008/03/03 02:59:20 pwolanin
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Greek translation for modr8\n"
+"POT-Creation-Date: 2008-04-01 07:06+0000\n"
+"PO-Revision-Date: 2008-04-01 12:25+0200\n"
+"Last-Translator: Dimitris Kounalakis <dcoun@medsite.info>\n"
+"Language-Team: Dimitris Kounalakis <dcoun@medsite.info>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Greek\n"
+"X-Poedit-Country: GREECE\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#: modr8_admin.inc:8
+msgid "Default action"
+msgstr "Προκαθορισμένη ενέργεια"
+
+#: modr8_admin.inc:10
+msgid "approve"
+msgstr "έγκριση"
+
+#: modr8_admin.inc:11
+msgid "delete"
+msgstr "διαγραφή"
+
+#: modr8_admin.inc:12
+msgid "no action"
+msgstr "καμιά ενέργεια"
+
+#: modr8_admin.inc:19
+msgid "Number of moderated posts to display per page"
+msgstr "Αριθμός υπό έγκριση υποβληθήσας ύλης για εμφάνιση ανά σελίδα"
+
+#: modr8_admin.inc:24
+msgid "Never"
+msgstr "Ποτέ"
+
+#: modr8_admin.inc:27
+msgid "Discard log entries older than"
+msgstr "Απόρριψη καταγραφής ενεργειών για παλαιότερες από"
+
+#: modr8_admin.inc:30
+msgid "The time log entries should be kept. Older entries will be automatically discarded. Requires crontab."
+msgstr "Οι καταγραφές ενεργειών έγκρισης μέχρι τον επιλεγμένο χρόνο θα διατηρηθούν. Οι παλαιότερες καταγραφές θα διαγραφούν αυτόματα. Χρειάζεται το cron."
+
+#: modr8_admin.inc:34
+msgid "E-mail"
+msgstr "E-mail"
+
+#: modr8_admin.inc:39
+msgid "Moderator email adress"
+msgstr "H e-mail διεύθυνση του κριτή"
+
+#: modr8_admin.inc:40
+msgid "E-mail notices sent by modr8 will have this as the \"From\" address. Leave empty to use same \"From\" address  as is used for user registration other administrative notices as set at <a href=\"@site-info\">Site information</a>."
+msgstr "Τα ενημερωτικά e-mail που στέλνονται από το modr8 θα έχουν αυτή σαν διεύθυνση \"From\". Άφησε την κενή για να χρησιμοποιηθεί η ίδια διεύθυνση \"From\" που χρησιμοποιείται στην εγγραφή του χρήστη και σε άλλες διαδικασίας όπως ορίζεται εδώ: <a href=\"@site-info\">Site information</a>."
+
+#: modr8_admin.inc:46
+msgid "Send approval messages"
+msgstr "Αποστολή μηνύματων έγκρισης"
+
+#: modr8_admin.inc:52
+msgid "Acceptance e-mail subject"
+msgstr "Θέμα μηνύματος e-mail για αποδοχή"
+
+#: modr8_admin.inc:62
+msgid "Acceptance e-mail"
+msgstr "Μήνυμα e-mail αποδοχής"
+
+#: modr8_admin.inc:64;85;106
+msgid "Replacement strings are: %macros"
+msgstr "Διαθέσιμες μεταβλητές: %macros"
+
+#: modr8_admin.inc:69
+msgid "Send denial messages"
+msgstr "Αποστολή μηνυμάτων απόρριψης"
+
+#: modr8_admin.inc:75
+msgid "Denial e-mail subject"
+msgstr "Θέμα μηνύματος e-mail για απόρριψη"
+
+#: modr8_admin.inc:83
+msgid "Denial e-mail"
+msgstr "Μήνυμα e-mail απόρριψης"
+
+#: modr8_admin.inc:90
+msgid "Send a message when taking no action, but only if the moderator enters a \"Note to author\"."
+msgstr "Στείλε ένα μήνυμα σε μη ενέργεια, αλλά μόνο εάν ο κριτής γράψει κάτι στο \"Σχόλια στο συγγραφέα\"."
+
+#: modr8_admin.inc:96
+msgid "No action e-mail subject"
+msgstr "Θέμα μηνύματος e-mail για μη ενέργεια"
+
+#: modr8_admin.inc:104
+msgid "No action e-mail note"
+msgstr "Μήνυμα e-mail μη ενέργειας"
+
+#: modr8_admin.inc:115
+msgid "You must either enter a valid e-mail address, or leave the moderator e-mail field empty."
+msgstr "Πρέπει να εισάγεις μια έγκυρη διεύθυνση e-mail, ή άφησε το πεδίο για το e-mail του κριτή κενό."
+
+#: modr8_admin.inc:134
+#: modr8.module:44
+msgid "Show log of all actions on moderated content."
+msgstr "Εμφάνιση καταγραφής όλων των ενεργειών σε ύλη υπό έγκριση."
+
+#: modr8_admin.inc:143
+#: modr8.module:221
+msgid "@items in moderation"
+msgstr "@items υπό έγκριση"
+
+#: modr8_admin.inc:168
+msgid "Approve"
+msgstr "Έγκριση"
+
+#: modr8_admin.inc:169
+msgid "Delete"
+msgstr "Διαγραφή"
+
+#: modr8_admin.inc:170
+msgid "No action"
+msgstr "Μη ενέργεια"
+
+#: modr8_admin.inc:177
+msgid "Note to author"
+msgstr "Σχόλια στο συγγραφέα"
+
+#: modr8_admin.inc:218
+msgid "Save"
+msgstr "Αποθήκευση"
+
+#: modr8_admin.inc:229
+msgid "Operations"
+msgstr "Εργασίες"
+
+#: modr8_admin.inc:230
+msgid "Content"
+msgstr "Περιεχόμενο"
+
+#: modr8_admin.inc:278
+msgid "The %type with title %title has been approved."
+msgstr "Ο τύπος ύλης %type με τίτλο %title εγκρίθηκε."
+
+#: modr8_admin.inc:315
+msgid "approval"
+msgstr "έγκριση"
+
+#: modr8_admin.inc:320
+msgid "denial"
+msgstr "απόρριψη"
+
+#: modr8_admin.inc:325
+msgid "note (no action)"
+msgstr "σχόλιο (μη ενέργεια)"
+
+#: modr8_admin.inc:341
+msgid "You should create an administrator mail address for your site! <a href=\"@url\">Do it here</a>."
+msgstr "Πρέπει να δημιουργήσετε μια διεύθυνση e-mail διαχειριστή στην ιστοσελίδα σας! <a href=\"@url\">Κάντε το εδώ</a>."
+
+#: modr8_admin.inc:348
+msgid "Anonymous user; no %type message was sent."
+msgstr "Ανώνυμος χρήστης, δεν στάλθηκε μήνυμα για %type ."
+
+#: modr8_admin.inc:351
+msgid "%type message was sent to %username"
+msgstr "Μήνυμα για %type στάλθηκε στον/στην %username"
+
+#: modr8_admin.inc:355
+msgid "There was a problem sending the %type message to %username"
+msgstr "Υπήρξε ένα πρόβλημα κατά την αποστολή μηνύματος για %type στον/στην %username"
+
+#: modr8_admin.inc:360
+msgid "An error occurred when trying to load this content."
+msgstr "Συνέβει ένα λάθος κατά την προσπάθεια πρόσβασης σε αυτό το περιεχόμενο."
+
+#: modr8_admin.inc:390
+msgid ""
+"Note:\n"
+"  @note"
+msgstr ""
+"Σχόλιο:\n"
+"  @note"
+
+#: modr8_admin.inc:415
+msgid ""
+"Your %type entry entitled \"%title\" has been approved by our content moderator! Other visitors to %site will now be able to view it.\n"
+"\n"
+"You can visit %node_url to view it yourself.\n"
+"\n"
+"%note\n"
+"\n"
+"Regards,\n"
+"The %site team"
+msgstr ""
+"Η ύλη τύπου %type με τίτλο \"%title\" έγινε δεκτή από τον κριτή περιεχομένου μας! Οι άλλοι αναγνώστες του %site θα μπορούν τώρα να το δουν.\n"
+"\n"
+"Μπορείτε να πάτε στο %node_url για να το δείτε.\n"
+"\n"
+"%note\n"
+"\n"
+"Χαιρετισμοί,\n"
+"Η ομάδα του %site"
+
+#: modr8_admin.inc:427
+msgid ""
+"Your %type entry entitled \"%title\" has been denied by our content moderator. The content has been deleted from our site.\n"
+"\n"
+"%note\n"
+"\n"
+"Regards,\n"
+"The %site team"
+msgstr ""
+"Η ύλη τύπου %type με τίτλο \"%title\" δεν έγινε δεκτή από τον κριτή περιεχομένου μας. Το περιεχόμενο του διαγράφηκε από την ιστοσελίδα.\n"
+"\n"
+"%note\n"
+"\n"
+"Χαιρετισμοί,\n"
+"Η ομάδα του %site"
+
+#: modr8_admin.inc:437
+msgid ""
+"Your %type entry entitled \"%title\" has been reviewed by our content moderator, but not yet approved.\n"
+"\n"
+"%note\n"
+"\n"
+"You can visit %node_url to view it yourself, but is is not yet visible to other site visitors.\n"
+"\n"
+"Regards,\n"
+"The %site team"
+msgstr ""
+"Η ύλη τύπου %type με τίτλο \"%title\" εξετάστηκε από τον κριτή περιεχομένου μας, αλλά δεν έγινε ακόμη δεκτό.\n"
+"\n"
+"%note\n"
+"\n"
+"Μπορείτε να πάτε στο %node_url για να το δείτε, αλλά δεν είναι ακόμη ορατό σε άλλους αναγνώστες.\n"
+"\n"
+"Χαιρετισμοί,\n"
+"Η ομάδα του %site"
+
+#: modr8_admin.inc:468
+msgid "Moderation log event"
+msgstr "Αρχείο καταγραφής ενεργειών έγκρισης"
+
+#: modr8_admin.inc:480
+msgid "Action"
+msgstr "Ενέργεια"
+
+#: modr8_admin.inc:481
+msgid "Moderator"
+msgstr "Κριτής"
+
+#: modr8_admin.inc:482
+msgid "Date"
+msgstr "Ημερομηνία"
+
+#: modr8_admin.inc:483
+msgid "Title (view event)"
+msgstr "Τίτλος (εμφάνιση)"
+
+#: modr8_admin.inc:506
+msgid "No log messages available."
+msgstr "Δεν υπάρχουν καταγραφές"
+
+#: modr8_admin.inc:531
+msgid "Overview of all moderation log events for this post"
+msgstr "Εμφάνιση όλης της καταγραφής γεγονότων έγκρισης για αυτή την απεσταλμένη ύλη"
+
+#: modr8_admin.inc:532
+msgid "Action:"
+msgstr "Ενέργεια:"
+
+#: modr8_admin.inc:533
+msgid "Date:"
+msgstr "Ημερομηνία:"
+
+#: modr8_admin.inc:534
+msgid "Moderator:"
+msgstr "Κριτής:"
+
+#: modr8_admin.inc:535
+msgid "E-mail message:"
+msgstr "Μήνυμα E-mail:"
+
+#: modr8_admin.inc:536
+msgid "Author:"
+msgstr "Συγγραφέας:"
+
+#: modr8_admin.inc:537
+msgid "Teaser (as reviewed):"
+msgstr "Διαχωρισμός περίληψης:"
+
+#: modr8_admin.inc:143
+#: modr8.module:221
+msgid "1 post"
+msgid_plural "@count posts"
+msgstr[0] "1 υποβολή ύλης "
+msgstr[1] "@count υποβολές ύλης "
+
+#: modr8_admin.inc:143
+#: modr8.module:221
+#: modr8_admin.inc:196
+msgid "See the 1 moderation log event for this post"
+msgid_plural "Overview of the @count moderation log events for this post"
+msgstr[0] "Δες την 1 καταγραφή ενεργειών έγκριση για αυτή την ύλη προς έγκριση"
+msgstr[1] "Επισκόπιση των @count καταγραφών ενεργείων για αυτή την ύλη προς έγκριση"
+
+#: modr8.module:15
+msgid "Easy, dedicated moderation of content. Assign the 'moderate content' permission to one or mode user roles. Set up the default moderation option for each node type."
+msgstr "Εύκολη, αποκλειστική έγκριση περιεχομένου. Δώστε την άδεια 'moderate content' σε ένα ή περισσότερους ρόλους χρηστών. Ορίστε την προκαθορισμένη επιλογή για έγκριση ή όχι σε κάθε τύπο ύλης."
+
+#: modr8.module:137;140;162
+msgid "In moderation queue"
+msgstr "Σε διαδικασία έγκρισης"
+
+#: modr8.module:140
+msgid "This %type will be placed in moderation if the %moderate checkbox is selected."
+msgstr "Αυτή η υποβολή ύλης τύπου %type θα τεθεί υπό έγκριση για δημοσίευση εάν το %moderate checkbox είναι επιλεγμένο."
+
+#: modr8.module:209
+msgid "Modr8 moderator's block"
+msgstr "Το μπλοκ κριτή του Modr8"
+
+#: modr8.module:214
+msgid "Moderation queue"
+msgstr "Ύλη προς έγκριση"
+
+#: modr8.module:225
+msgid "Recent additions:"
+msgstr "Πρόσφατες προσθήκες:"
+
+#: modr8.module:249
+msgid "Pending moderation"
+msgstr "Αναμένεται έγκριση"
+
+#: modr8.module:254
+msgid "The post has been submitted for moderation and won't be listed publicly until it has been approved."
+msgstr "Η ύλη του παρόντος έχει σταλεί προς έγκριση και δεν θα εμφανίζεται σε άλλους αναγνώστες μέχρι να εγκριθεί."
+
+#: modr8.module:257
+msgid "This %type will be submitted for moderation and will not be accessible to other users until it has been approved."
+msgstr "Αυτή η ύλη τύπου %type θα σταλεί για έγκριση και δεν θα εμφανίζεται σε άλλους αναγνώστες μέχρι να εγκριθεί."
+
+#: modr8.module:80
+msgid "moderate content"
+msgstr "moderate content"
+
+#: modr8.module:34
+msgid "Moderated content"
+msgstr "Περιεχόμενο υπό έγκριση"
+
+#: modr8.module:35
+msgid "Approve or delete moderated content."
+msgstr "Ενέκρινε ή διέγραψε το υπό έγκριση περιεχόμενο."
+
+#: modr8.module:43
+msgid "Content moderation log"
+msgstr "Αρχείο καταγραφής ενεργειών έγκρισης περιεχομένου"
+
+#: modr8.module:52
+msgid "Modr8 settings"
+msgstr "Ρυθμίσεις Modr8"
+
+#: modr8.module:53
+msgid "Configure content moderation."
+msgstr "Καθορισμός έγκρισης περιεχομένου προς δημοσίευση."
+
+#: modr8.module:62
+msgid "Moderation"
+msgstr "Έλεγχος περιεχομένου προς δημοσίευση"
+
+#: modr8.module:0
+msgid "modr8"
+msgstr "modr8"
+
+#: modr8.info:0
+msgid "Modr8"
+msgstr "Modr8"
+
+#: modr8.info:0
+msgid "Easy, dedicated moderation of content"
+msgstr "Εύκολη, αποκλειστική έγκριση περιεχομένου"
+

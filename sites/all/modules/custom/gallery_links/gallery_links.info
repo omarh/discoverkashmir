@@ -1,0 +1,8 @@
+; $Id$
+name = Gallery Links
+description = Adds gallery related links to teaser and full node views.
+package = Other
+core = 6.x
+version = "6.x"
+core = "6.x"
+

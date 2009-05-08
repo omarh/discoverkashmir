@@ -1,0 +1,55 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * 
+ */
+
+function gallery_links_nodeapi(&$node, $op, $teaser=true) {
+    switch($op) {
+        case 'view':
+            if($node->type == 'place') {
+            
+                $links['view_gallery'] = array(
+                    'title' => t('View Gallery'),
+                    'href' => 'node/'.$node->nid.'/gallery',
+                    'attributes' => array(
+                      'title' => 'View photo gallery associated with this node.'
+                    )
+                );
+                $links['add_photo'] = array(
+                    'title' => t('Add Photo'),
+                    'href' => 'node/add/image/'.$node->nid,
+                    'attributes' => array(
+                      'title' => 'Add photo to this '.$node->type.'.'
+                    )
+                );
+                $node->content['gallery_link'] = array(
+                    '#value' => theme('links', $links),
+                    '#weight' => 100
+                );
+            }
+        break;
+    }
+}
+
+
+function gallery_links_form_alter(&$form, $form_state, $form_id) {
+    /*echo "<pre>";
+    print_r($form);*/
+    
+    if($form['type']['#value'] == 'image') {
+        $form['hidden_section'] = array(
+            '#type' => 'fieldset',
+            '#title' => 'hidden',
+            '#prefix' => '<div class="hidden" style="display:none">',
+            '#suffix' => '</div>'
+            
+        );
+        $form['hidden_section']['field_image_parent'] = $form['field_image_parent'];
+        unset($form['field_image_parent']);
+        
+    }
+    
+}
